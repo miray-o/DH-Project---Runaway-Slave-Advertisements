@@ -4,16 +4,16 @@ SpaCy - the most well-known NER library has a few already trained models to run 
 
 The smallest model in English language have the 87% accuracy rate overall. 
 SMALL MODEL - First Ad:
-![[Pasted image 20250527125339.png]]
+![NER by existing model](20250527125339.png)
 Sixth Ad: 
-![[Pasted image 20250527125600.png]]
+![Another example of NER by existing model](20250527125600.png)
 
 Since I wanted a more detailed entity separation, such as enslaved and enslaver instead of simply people, I have decided to train a simple SPaCY model myself.
 
 First, I started with manually annotating a few of the ads on a web annotator. 
 I have decided on 8 tags that would be necessary to be in the metadata. 
 Annotator: https://github.com/tecoholic/ner-annotator 
-![[Pasted image 20250621114835.png]]
+![example of my annotation](20250621114835.png)
 
 To annotate, I picked 30 slave advertisements (every fifth one when listed chronically)
 After manually tagging, I split 20% of the tagged advertisements to be the training data. 
