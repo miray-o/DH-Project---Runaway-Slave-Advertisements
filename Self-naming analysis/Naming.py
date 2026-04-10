@@ -51,11 +51,11 @@ def check_self_naming(content):
         match = re.search(r'goes by the name (?:of )?([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)', content)
         return True, 'goes by the name', match.group(1) if match else None
 
-    elif re.search(r'pretends? to be (?:a )?free(?:man)?', content_lower):
-        return True, 'pretends to be free', None
+    #elif re.search(r'pretends? to be (?:a )?free(?:man)?', content_lower):
+        #return True, 'pretends to be free', None
 
-    elif re.search(r'pretends? to be (?:a )?freeman', content_lower):
-        return True, 'pretends to be a Freeman', None
+    #elif re.search(r'pretends? to be (?:a )?freeman', content_lower):
+        #return True, 'pretends to be a Freeman', None
 
     return False, None, None
 
@@ -318,7 +318,7 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         csv_file = sys.argv[1]
     else:
-        csv_file = "/_Pretends To Be Free_ - Runaway Slave Ads - Sheet1 (1).csv"
+        csv_file = "/Users/mirayozmutlu/Documents/GitHub/DH-Project---Runaway-Slave-Advertisements/_Pretends To Be Free_ - Runaway Slave Ads - Sheet1 (1).csv"
 
     try:
         results = analyze_self_naming(csv_file)
