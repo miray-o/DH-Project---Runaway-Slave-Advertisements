@@ -8,7 +8,7 @@ import pandas as pd
 import re
 from collections import defaultdict
 import sys
-
+import matplotlib.pyplot as plt
 
 def extract_year_decade(date_str):
     """Extract year and decade from date string"""

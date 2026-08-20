@@ -82,3 +82,120 @@ plt.ylabel('Count')
 plt.legend(title='Gendered Language')
 plt.tight_layout()
 plt.show()
+
+#Clean the text data for further analysis
+def normalize_text(text):
+    if not isinstance(text, str):
+        return ""
+
+    # Lowercase for uniformity
+    text = text.lower()
+
+    # Standardize common archaic terms found in runaway ads
+    text = re.sub(r'\bnegroe\b', 'negro', text)
+    text = re.sub(r'\bcloathes\b', 'clothes', text)
+    text = re.sub(r'\bcloaths\b', 'clothes', text)
+    text = re.sub(r'\bgaol\b', 'jail', text)
+    text = re.sub(r'\bgoal\b', 'jail', text)
+    text = re.sub(r'\bwest-coat\b', 'waistcoat', text)
+    text = re.sub(r'\bwastecoat\b', 'waistcoat', text)
+    text = re.sub(r'\bwestcoat\b', 'waistcoat', text)
+    text = re.sub(r'\bbritches\b', 'breeches', text)
+    text = re.sub(r'\bozenbrigs\b', 'osnaburg', text) # A common coarse fabric
+    text = re.sub(r'\bosenbrigs\b', 'osnaburg', text)
+    text = re.sub(r'\bozenbrig\b', 'osnaburg', text)
+
+    # Remove punctuation for bag-of-words analysis
+    text = re.sub(r'[^\w\s]', '', text)
+
+    return text
+
+df['cleaned_content'] = df['Content'].apply(normalize_text)
+
+# map resource names to nltk.data paths
+_RESOURCE_PATHS = {
+    'punkt': 'tokenizers/punkt',
+    'stopwords': 'corpora/stopwords',
+}
+
+def ensure_nltk_resource(name, max_retries=3):
+    path = _RESOURCE_PATHS.get(name)
+    if not path:
+        return False
+    try:
+        nltk.data.find(path)
+        return True
+    except LookupError:
+        delay = 1.0
+        for attempt in range(max_retries):
+            try:
+                nltk.download(name, quiet=True)
+                nltk.data.find(path)
+                return True
+            except Exception:
+                if attempt < max_retries - 1:
+                    time.sleep(delay)
+                    delay *= 2
+                else:
+                    return False
+
+# ensure resources (won't re-download if already present)
+punkt_ok = ensure_nltk_resource('punkt')
+stopwords_ok = ensure_nltk_resource('stopwords')
+
+# prepare stop words (fallback to empty set if not available)
+try:
+    stop_words = set(stopwords.words('english')) if stopwords_ok else set()
+except Exception:
+    stop_words = set()
+
+# add domain-specific boilerplate words
+boilerplate = {
+    'runaway', 'run', 'away', 'master', 'subscriber', 'whereas',
+    'named', 'reward', 'shillings', 'pounds', 'paid', 'charges',
+    'reasonable', 'notice', 'give', 'secure', 'bring', 'delivered',
+    'whoever', 'takes', 'person', 'negro', 'man', 'fellow', 'woman', 'wench',
+    'said', 'return', 'jail', 'gaol', 'shall', 'may', 'went', 'says', 'years', 'old',
+    'new', 'day', 'secures', 'aged', 'pair', 'john', 'david', 'lyell', 'william',
+    'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'
+}
+
+stop_words.update(boilerplate)
+
+# robust tokenizer: use nltk if punkt is available, otherwise a regex fallback
+def tokenize_text(text):
+    if not isinstance(text, str):
+        return []
+    if punkt_ok:
+        try:
+            return nltk.word_tokenize(text)
+        except Exception:
+            pass
+    # fallback: simple word tokenization (keeps only word characters)
+    return re.findall(r'\b\w+\b', text.lower())
+
+def remove_stopwords(text):
+    tokens = tokenize_text(text)
+    return [w for w in tokens if w.lower() not in stop_words]
+
+# Example application (assuming `df` and `cleaned_content` already exist):
+df['tokens'] = df['cleaned_content'].apply(remove_stopwords)
+
+words = df['tokens']
+
+#create word clouds for each gender
+from wordcloud import WordCloud
+
+# Group ads by gendered language and produce corpora
+corpora_by_gender = {}
+for gender, group in df.groupby('gendered_language'):
+    corpora_by_gender[gender] = " ".join([" ".join(tokens) for tokens in group['tokens'].dropna()])
+
+# Generate and display word clouds for each gender
+for gender, text in corpora_by_gender.items():
+    wordcloud = WordCloud(width=800, height=400, background_color='white').generate(text)
+    plt.figure(figsize=(10, 5))
+    plt.imshow(wordcloud, interpolation='bilinear')
+    plt.axis('off')
+    plt.title(f"Word Cloud for {gender}")
+    plt.show()

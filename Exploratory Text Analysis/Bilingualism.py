@@ -1,61 +1,69 @@
 #load the necessary libraries
 import pandas as pd
-import time
-import re
-import nltk
-from nltk.corpus import stopwords
 import matplotlib.pyplot as plt
 import Cleaning
 
 df = Cleaning.df
+
 #count the number of ads that mention "dutch" and "english" in the same ad
 def count_bilingual_ads(text):
-    text = text.lower()
     if 'dutch' in text and 'english' in text:
         return 1
     else:
         return 0
 
-df['bilingual'] = df['Content'].apply(count_bilingual_ads)
+df['bilingual'] = df['tokens'].apply(count_bilingual_ads)
 bilingual_count = df['bilingual'].sum()
 print(f'The number of ads that mention both "dutch" and "english" is: {bilingual_count}')
-#visualize the count of bilingual ads over the years
-bilingual_year_counts = df.groupby('Year')['bilingual'].sum()
-plt.figure(figsize=(12, 6))
-plt.plot(bilingual_year_counts.index, bilingual_year_counts.values, label='Bilingual Ads (Dutch & English)')
-plt.title('Count of Bilingual Ads (Dutch & English) by Year')
-plt.xlabel('Year')
-plt.ylabel('Count of Bilingual Ads')
-plt.legend()
-plt.tight_layout()
-plt.show()
+
 #count the number of ads that mention "dutch" and "english" separately over the years
 def count_language_mentions(text):
-    text = text.lower()
     dutch = 1 if 'dutch' in text else 0
     english = 1 if 'english' in text else 0
     return pd.Series({'dutch': dutch, 'english': english})
 
-language_counts = df['Content'].apply(count_language_mentions)
+language_counts = df['tokens'].apply(count_language_mentions)
 df = pd.concat([df, language_counts], axis=1)
 language_year_counts = df.groupby('Year')[['dutch', 'english']].sum()
-#visualize the counts over the years
+# Group data by 5-year intervals
+df['FiveYear'] = (df['Year'] // 5 * 5).astype(int)
+
+# Aggregate bilingual, Dutch, and English mentions by 5-year intervals
+bilingual_5yr_counts = df.groupby('FiveYear')['bilingual'].sum()
+language_5yr_counts = df.groupby('FiveYear')[['dutch', 'english']].sum()
+
+# Combine the data into a single DataFrame for plotting
+combined_5yr_counts = pd.DataFrame({
+    'Bilingual Ads': bilingual_5yr_counts,
+    'Dutch Mentions': language_5yr_counts['dutch'],
+    'English Mentions': language_5yr_counts['english']
+})
+
+# Plot the combined line chart
 plt.figure(figsize=(12, 6))
-plt.plot(language_year_counts.index, language_year_counts['dutch'], label='Dutch Mentions')
-plt.plot(language_year_counts.index, language_year_counts['english'], label='English Mentions')
-plt.title('Mentions of Dutch and English in Ads by Year')
-plt.xlabel('Year')
+plt.plot(combined_5yr_counts.index, combined_5yr_counts['Bilingual Ads'], label='Bilingual Ads (Dutch & English)', marker='o')
+plt.plot(combined_5yr_counts.index, combined_5yr_counts['Dutch Mentions'], label='Dutch Mentions', marker='s')
+plt.plot(combined_5yr_counts.index, combined_5yr_counts['English Mentions'], label='English Mentions', marker='^')
+plt.title('Bilingualism, Dutch, and English Mentions in Ads (Grouped by 5-Year Intervals)')
+plt.xlabel('5-Year Interval')
 plt.ylabel('Count')
 plt.legend()
+plt.grid(True, alpha=0.3)
 plt.tight_layout()
 plt.show()
 
-# Visualize 100% stacked bar chart of dutch and english mentions by year
-language_year_counts_normalized = language_year_counts.div(language_year_counts.sum(axis=1), axis=0)
+# Visualize 100% stacked bar chart of dutch and english mentions by decade
+# Group ads by decade
+language_year_counts['Decade'] = (language_year_counts.index // 10 * 10).astype(str) + 's'
+language_decade_counts = language_year_counts.groupby('Decade').sum()
 
-language_year_counts_normalized.plot(kind='bar', stacked=True, figsize=(12, 6))
-plt.title('Proportion of Dutch and English Mentions in Ads by Year')
-plt.xlabel('Year')
+# Normalize the counts for 100% stacked bar chart
+language_decade_counts_normalized = language_decade_counts.div(language_decade_counts.sum(axis=1), axis=0)
+
+# Plot the 100% stacked bar chart
+language_decade_counts_normalized.plot(kind='bar', stacked=True, figsize=(12, 6))
+plt.title('Proportion of Dutch and English Mentions in Ads by Decade')
+plt.xlabel('Decade')
 plt.ylabel('Proportion')
 plt.legend(title='Language Mentions')
 plt.tight_layout()
@@ -65,7 +73,6 @@ plt.show()
 df['Decade'] = (df['Year'] // 10 * 10).astype(str) + 's'
 
 def count_language_skills(text):
-    text = text.lower()
     speaks_dutch = 1 if 'speaks dutch' in text else 0
     speaks_broken_english = 1 if 'speaks broken english' in text else 0
     speaks_very_good_english = 1 if 'speaks very good english' in text else 0
@@ -75,7 +82,7 @@ def count_language_skills(text):
         'speaks_very_good_english': speaks_very_good_english
     })
 
-language_skills = df['Content'].apply(count_language_skills)
+language_skills = df['tokens'].apply(count_language_skills)
 df = pd.concat([df, language_skills], axis=1)
 
 # Track frequency by decade

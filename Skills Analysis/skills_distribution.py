@@ -1,4 +1,5 @@
 """
+LLM models Claude and Gemini was used in this analysis
 Skills Analysis for Runaway Slave Advertisements
 Analyzes literacy, mechanical, and musical skills as routes to economic independence
 Based on "Pretends To Be Free" dataset from NY/NJ 18th century

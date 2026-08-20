@@ -1,7 +1,4 @@
 import string
-from string import punctuation
-
-import nltk
 
 import Cleaning
 import pandas as pd

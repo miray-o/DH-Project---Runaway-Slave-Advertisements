@@ -5,7 +5,7 @@ import re
 import nltk
 from nltk.corpus import stopwords
 # Load the dataset
-df = pd.read_csv('/Users/mirayozmutlu/Documents/GitHub/DH-Project---Runaway-Slave-Advertisements/_Pretends To Be Free_ - Runaway Slave Ads - Sheet1 (1).csv')
+df = pd.read_csv('/Users/mirayozmutlu/Documents/GitHub/DH-Project---Runaway-Slave-Advertisements/Runaway Slave Ads - primary sources.csv')
 
 # find a date-like column (case-insensitive); set `date_col` manually if detection fails
 date_col = next((c for c in df.columns if 'date' in c.lower()), None)
@@ -94,7 +94,9 @@ boilerplate = {
     'named', 'reward', 'shillings', 'pounds', 'paid', 'charges',
     'reasonable', 'notice', 'give', 'secure', 'bring', 'delivered',
     'whoever', 'takes', 'person', 'negro', 'man', 'fellow', 'woman', 'wench',
-    'said', 'return', 'jail', 'gaol', 'shall', 'may', 'went', 'says', 'years'
+    'said', 'return', 'jail', 'gaol', 'shall', 'may', 'went', 'says', 'years', 'old',
+    'new', 'day', 'secures', 'aged', 'pair', 'john', 'david', 'lyell', 'william',
+    'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'
 }
 stop_words.update(boilerplate)
 
@@ -118,3 +120,4 @@ def remove_stopwords(text):
 df['tokens'] = df['cleaned_content'].apply(remove_stopwords)
 
 words = df['tokens']
+print(words.head())
