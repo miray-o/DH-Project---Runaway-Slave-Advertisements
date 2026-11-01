@@ -146,7 +146,7 @@ def analyze_skills(csv_file):
     # Process each advertisement
     for idx, row in df.iterrows():
         content = str(row['Content'])
-        date = str(row['Date '])
+        date = str(row['Date (mm/dd/yyyy)'])
 
         year, decade = extract_year_decade(date)
         if not decade:
@@ -397,7 +397,7 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         csv_file = sys.argv[1]
     else:
-        csv_file = "/Users/mirayozmutlu/Documents/GitHub/DH-Project---Runaway-Slave-Advertisements/_Pretends To Be Free_ - Runaway Slave Ads - Sheet1 (1).csv"
+        csv_file = "/Users/mirayozmutlu/Documents/GitHub/DH-Project---Runaway-Slave-Advertisements/Runaway Slave Ads - primary sources.csv"
 
     try:
         results = analyze_skills(csv_file)
